@@ -16,12 +16,15 @@ const theme = {
 
 class App extends Component {
   state = {
-    streams: [],
+    streams: []
   }
 
   async componentDidMount() {
     const streams = await ws.get(TWITCH_API_PATH + 'streams');
-    this.setState({streams: streams.data})
+
+    this.setState({
+      streams: streams.data
+    })
     console.log(streams);
   }
 
@@ -30,9 +33,9 @@ class App extends Component {
       <Grommet theme={theme}>
         <div className="streams">
           {this.state.streams.length > 0 ? (
-            this.state.streams.map((stream, i) => (
-              <Stream {...stream} />
-            ))
+              this.state.streams.map((stream, i) => (
+                <Stream key={stream.id} {...stream} />
+              ))
           ) : (
             <Paragraph>
               Aucun stream n'a été trouvé avec ces critères.
