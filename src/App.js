@@ -1,9 +1,16 @@
+/* TODO
+  - BUG : repeated loop (min 60, max 200, japanese)
+  - Include / exclude games
+  - Style
+*/
+
 import React, { Component } from 'react';
 import './style/App.css';
 import { Button, FormField, Grommet, Paragraph, TextInput } from 'grommet';
 import ws from './utils/web_service';
-import { TWITCH_API_PATH } from './utils/constants';
+import { TWITCH_API_PATH, TWITCH_LANGUAGES } from './utils/constants';
 import Stream from './components/Stream';
+import Select from 'react-select';
 
 const theme = {
   global: {
@@ -25,13 +32,14 @@ class App extends Component {
       streams: [],
       queryParams: {
         first: 100,
-        language: 'fr',
+        language: ["fr"],
       },
       filters: {
         min: '',
         max: '',
       },
-      loading: false
+      loading: false,
+      lastCursor: ''
     }
   }
 
@@ -40,16 +48,16 @@ class App extends Component {
 
   getStreams = async () => {
     const streams = [];
-    let cursor = '';
     let params = {};
     let i = 0;
 
-    this.setState({loading: true});
+    this.setState({ loading: true });
 
     while (this.counter < 20) {
-      params = i > 0 ? { ...this.state.queryParams, after: cursor } : this.state.queryParams;
+      params = i > 0 ? { ...this.state.queryParams, after: this.state.lastCursor } : this.state.queryParams;
       const fetchedStreams = await ws.get(TWITCH_API_PATH + 'streams', params);
-      cursor = fetchedStreams.pagination.cursor;
+      this.state.lastCursor = fetchedStreams.pagination.cursor || '';
+      console.log(this.state.lastCursor);
 
       if (this.hasViewersFilter()) {
         for (const stream of fetchedStreams.data) {
@@ -68,7 +76,7 @@ class App extends Component {
       console.log(streams);
     }
 
-    this.setState({loading: false});
+    this.setState({ loading: false });
     this.counter = 0;
   }
 
@@ -76,6 +84,20 @@ class App extends Component {
     const filters = { ...this.state.filters };
     filters[e.target.name] = e.target.value;
     this.setState({ filters: filters });
+  }
+
+  setLanguage = (selectedLanguages) => {
+    let languages = [];
+    const queryParams = { ...this.state.queryParams };
+
+    if (selectedLanguages) {
+      for (const language of selectedLanguages) {
+          languages.push(language.value);
+      }
+    }
+
+    queryParams.language = languages;
+    this.setState({ queryParams: queryParams });
   }
 
   render() {
@@ -106,6 +128,13 @@ class App extends Component {
             />
           </FormField>
 
+          <Select
+            options={TWITCH_LANGUAGES} 
+            isMulti 
+            onChange={this.setLanguage} 
+            defaultValue={{value: 'fr', label: 'Français' }} 
+          />
+
           <Button
             label="Filtrer"
             onClick={this.getStreams}
@@ -114,18 +143,18 @@ class App extends Component {
 
         <div className="streams">
           {this.state.loading ? (
-            <div class="loading-spinner"><div></div><div></div></div>
+            <div className="loading-spinner"><div></div><div></div></div>
           ) : (
-            this.state.streams.length > 0 ? (
-              this.state.streams.map((stream, i) => (
-                <Stream key={i} {...stream} />
-              ))
-            ) : (
-              <Paragraph>
-                Aucun stream n'a été trouvé avec ces critères.
+              this.state.streams.length > 0 ? (
+                this.state.streams.map((stream, i) => (
+                  <Stream key={i} {...stream} />
+                ))
+              ) : (
+                  <Paragraph>
+                    Aucun stream n'a été trouvé avec ces critères.
               </Paragraph>
-            )
-          )}
+                )
+            )}
         </div>
       </Grommet>
     );

@@ -1,3 +1,9 @@
+.streams {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
 .loading-spinner {
   display: inline-block;
   position: relative;
