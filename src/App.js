@@ -50,7 +50,15 @@ class App extends Component {
   }
 
   hasFilters = () => this.state.filters.min !== '' || this.state.filters.max !== '' || this.state.filters.excludedGames.length > 0;
-  inViewersRange = (viewerCount) => viewerCount > this.state.filters.min && viewerCount < this.state.filters.max;
+  inViewersRange = (viewerCount) => {
+    if (
+      (this.state.filters.min !== '' && viewerCount < this.state.filters.min) ||
+      (this.state.filters.max !== '' && viewerCount > this.state.filters.max)
+    )
+      return false;
+
+    return true;
+  }
   isExcludedGame = (gameId) => this.state.filters.excludedGames.includes(gameId);
 
   getTopGames = async () => {
@@ -78,7 +86,6 @@ class App extends Component {
       
       if (this.hasFilters()) {
         for (const stream of fetchedStreams.data) {
-          console.log(this.inViewersRange(stream.viewer_count));
           if (this.inViewersRange(stream.viewer_count) && !this.isExcludedGame(stream.game_id)) {
             streams.push(stream);
           }
