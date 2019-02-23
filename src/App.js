@@ -1,6 +1,6 @@
 /* TODO
-  - BUG : repeated loop (min 60, max 200, japanese)
-  - Empty include/exclude games select when radio change
+  - Load more button
+  - Add game played in stream details
   - Style
 */
 
@@ -59,7 +59,7 @@ class App extends Component {
 
     return true;
   }
-  isExcludedGame = (gameId) => this.state.filters.excludedGames.includes(gameId);
+  isExcludedGame = (gameId) => this.state.excludeGames === 'true' && this.state.filters.excludedGames.includes(gameId);
 
   getTopGames = async () => {
     const fetchedGames = await ws.get(TWITCH_API_PATH + 'games/top', {first: 100});
@@ -79,10 +79,11 @@ class App extends Component {
     this.setState({ loading: true });
 
     while (this.counter < 20) {
-      params = i > 0 ? { ...this.state.queryParams, after: this.lastCursor } : this.state.queryParams;
+      params = Object.assign({}, i > 0 ? { ...this.state.queryParams, after: this.lastCursor } : this.state.queryParams);
+      if (this.state.excludeGames === 'true') params.game_id = [];
+
       const fetchedStreams = await ws.get(TWITCH_API_PATH + 'streams', params);
       this.lastCursor = fetchedStreams.pagination.cursor || '';
-      console.log(this.lastCursor);
       
       if (this.hasFilters()) {
         for (const stream of fetchedStreams.data) {
@@ -97,8 +98,6 @@ class App extends Component {
       this.counter = streams.length;
       this.setState({ streams: streams });
       i++;
-
-      console.log(streams);
     }
 
     this.setState({ loading: false });
@@ -147,7 +146,6 @@ class App extends Component {
       for (const game of selectedGames)
         gameIds.push(game.value);
 
-    console.log(gameIds);
     filters.excludedGames = gameIds;
     this.setState({ filters: filters });
   }
