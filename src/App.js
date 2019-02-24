@@ -1,5 +1,5 @@
 /* TODO
-  - Load more button
+  - Reset cursor when change in filters
   - Add game played in stream details
   - Style
 */
@@ -8,7 +8,7 @@ import React, { Component } from 'react';
 import './style/App.css';
 import { Button, FormField, Grommet, Paragraph, RadioButton, TextInput } from 'grommet';
 import ws from './utils/web_service';
-import { TWITCH_API_PATH, TWITCH_LANGUAGES } from './utils/constants';
+import { TWITCH_API_PATH, TWITCH_LANGUAGES, MIN_STREAMS_PER_PAGE } from './utils/constants';
 import Stream from './components/Stream';
 import Select from 'react-select';
 
@@ -26,9 +26,6 @@ class App extends Component {
   constructor(props) {
     super(props);
 
-    this.counter = 0;
-    this.lastCursor = '';
-
     this.state = {
       streams: [],
       topGames: [],
@@ -44,12 +41,13 @@ class App extends Component {
         excludedGames: []
       },
       loading: false,
+      lastCursor: ''
     }
 
     this.getTopGames();
   }
 
-  hasFilters = () => this.state.filters.min !== '' || this.state.filters.max !== '' || this.state.filters.excludedGames.length > 0;
+  hasFilters = () => this.state.filters.min !== '' || this.state.filters.max !== '' || this.state.filters.excludedGames.length;
   inViewersRange = (viewerCount) => {
     if (
       (this.state.filters.min !== '' && viewerCount < this.state.filters.min) ||
@@ -72,42 +70,55 @@ class App extends Component {
   }
 
   getStreams = async () => {
-    let streams = [];
+    let streams = this.state.lastCursor ? this.state.streams : [];
     let params = {};
-    let i = 0;
+    let counter = 0;
+    let cursor = '';
 
     this.setState({ loading: true });
 
-    while (this.counter < 20) {
-      params = Object.assign({}, i > 0 ? { ...this.state.queryParams, after: this.lastCursor } : this.state.queryParams);
+    while (counter < MIN_STREAMS_PER_PAGE) {
+      params = Object.assign({}, this.state.lastCursor ? { ...this.state.queryParams, after: this.state.lastCursor } : this.state.queryParams);
       if (this.state.excludeGames === 'true') params.game_id = [];
 
       const fetchedStreams = await ws.get(TWITCH_API_PATH + 'streams', params);
-      this.lastCursor = fetchedStreams.pagination.cursor || '';
-      
+
       if (this.hasFilters()) {
         for (const stream of fetchedStreams.data) {
           if (this.inViewersRange(stream.viewer_count) && !this.isExcludedGame(stream.game_id)) {
             streams.push(stream);
+            counter++;
           }
         };
       } else {
         streams.push(...fetchedStreams.data);
+        counter = MIN_STREAMS_PER_PAGE;
       }
 
-      this.counter = streams.length;
-      this.setState({ streams: streams });
-      i++;
+      if (fetchedStreams.data.length < 100) {
+        cursor = '';
+        counter = MIN_STREAMS_PER_PAGE;
+      } else
+        cursor = fetchedStreams.pagination.cursor;
+
+      this.setState({ 
+        streams: streams, 
+        lastCursor: cursor
+      });
     }
 
     this.setState({ loading: false });
-    this.counter = 0;
+    counter = 0;
   }
 
   handleViewersInputs = (e) => {
     let filters = { ...this.state.filters };
     filters[e.target.name] = e.target.value;
-    this.setState({ filters: filters });
+
+    this.setState({ 
+      filters: filters,
+      lastCursor: ''
+    });
   }
 
   setLanguage = (selectedLanguages) => {
@@ -121,7 +132,10 @@ class App extends Component {
     }
 
     queryParams.language = languages;
-    this.setState({ queryParams: queryParams });
+    this.setState({ 
+      queryParams: queryParams,
+      lastCursor: ''
+    });
   }
 
   setGame = (selectedGames) => {
@@ -135,7 +149,10 @@ class App extends Component {
     }
 
     queryParams.game_id = gameIds;
-    this.setState({ queryParams: queryParams });
+    this.setState({ 
+      queryParams: queryParams,
+      lastCursor: ''
+    });
   }
 
   setExcludedGame = (selectedGames) => {
@@ -147,11 +164,17 @@ class App extends Component {
         gameIds.push(game.value);
 
     filters.excludedGames = gameIds;
-    this.setState({ filters: filters });
+    this.setState({ 
+      filters: filters,
+      lastCursor: ''
+    });
   }
 
   handleGameFilter = (e) => {
-    this.setState({ excludeGames: e.target.value })
+    this.setState({ 
+      excludeGames: e.target.value,
+      lastCursor: ''
+    })
   }
 
   render() {
@@ -241,25 +264,40 @@ class App extends Component {
           </FormField>
 
           <Button
-            label="Filtrer"
+            label="Search"
             onClick={this.getStreams}
           />
         </div>
 
-        <div className="streams">
-          {this.state.loading ? (
-            <div className="loading-spinner"><div></div><div></div></div>
-          ) : (
-              this.state.streams.length > 0 ? (
-                this.state.streams.map((stream, i) => (
-                  <Stream key={i} {...stream} />
-                ))
-              ) : (
+        <div className="streams__container">
+          {this.state.streams.length ? (
+            <div className="streams">
+              {this.state.streams.map((stream, i) => (
+                <Stream key={i} {...stream} />
+              ))}
+              <div>
+                {this.state.lastCursor ? (
+                  <Button
+                    label="Load more"
+                    onClick={this.getStreams}
+                  />
+                ) : (
                   <Paragraph>
-                    Aucun stream n'a été trouvé avec ces critères.
-              </Paragraph>
-                )
-            )}
+                    No more stream.
+                  </Paragraph>
+                )}
+              </div>
+            </div>
+          ) : (
+            <Paragraph>
+              No stream was found with these filters.
+            </Paragraph>
+          )}
+          {this.state.loading &&
+            <div>
+              <div className="loading-spinner"><div></div><div></div></div>
+            </div>
+          }
         </div>
       </Grommet>
     );

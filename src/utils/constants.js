@@ -31,3 +31,4 @@ export const TWITCH_LANGUAGES = [
     { value: 'ko', label: '한국어' },
     { value: 'ro', label: 'Română' },
 ];
+export const MIN_STREAMS_PER_PAGE = 16;
