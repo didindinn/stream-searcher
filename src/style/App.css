@@ -1,3 +1,36 @@
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+}
+
+html {
+  box-sizing: inherit;
+}
+
+body {
+  font-family: 'Roboto';
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+h2 {
+  font-size: 95%;
+}
+
+.streams__container {
+  text-align: center;
+  padding-top: 1em;
+  margin-top: 72px;
+}
+
 .streams {
   display: flex;
   flex-wrap: wrap;
@@ -9,6 +42,7 @@
   position: relative;
   width: 64px;
   height: 64px;
+  margin-top: 1em;
 }
 
 .loading-spinner div {
@@ -39,3 +73,81 @@
     opacity: 0;
   }
 }
+
+.filters__container {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 10;
+  background: white;
+}
+
+.filters {
+  padding-bottom: 1em;
+  max-width: 1200px;
+  margin: auto;
+  width: 100%;
+}
+
+.filters__line {
+  display: flex;
+  padding: 0 1em;
+}
+
+  .filters__viewers .filters__element:first-child {
+    margin-right: 1em;
+  }
+
+  .filters__radios {
+    display: flex;
+  }
+
+    .filters__radios label {
+      margin-right: 1em;
+    }
+
+  .filters__games {
+    flex-grow: 1;
+  }
+
+  .filters__element {
+    flex-grow: 1;
+  }
+
+  .button__container {
+    text-align: center;
+    margin-top: 1em;
+  }
+
+.stream {
+  max-width: 400px;
+  margin-bottom: 2em;
+  border: 1px solid purple;
+}
+
+  .stream__title {
+    height: 48px;
+    overflow: hidden;
+    margin-bottom: 1em;
+  }
+
+  .stream__thumbnail {
+    max-width: 100%;
+  }
+
+@media screen and (max-width: 500px) {
+  
+  .filters__line {
+    flex-direction: column;
+  }
+
+  .filters__viewers .filters__element:first-child {
+    margin-right: 0;
+    margin-bottom: 1em;
+  }
+
+  .filters__radios,
+  .filters__languages {
+    margin-bottom: 1em;
+  }
+} 

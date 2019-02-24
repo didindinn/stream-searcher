@@ -1,26 +1,20 @@
 /* TODO
-  - Reset cursor when change in filters
-  - Add game played in stream details
-  - Style
+- Style
+- Errors handling
+- Display API fetch ratelimits
+- User connection to increase ratelimits
+- Add game played in stream details
+- PWA
+- Avoid duplicate entries
 */
 
 import React, { Component } from 'react';
 import './style/App.css';
-import { Button, FormField, Grommet, Paragraph, RadioButton, TextInput } from 'grommet';
+import { Accordion, AccordionPanel, Button, Grommet, RadioButton, TextInput } from 'grommet';
 import ws from './utils/web_service';
 import { TWITCH_API_PATH, TWITCH_LANGUAGES, MIN_STREAMS_PER_PAGE } from './utils/constants';
 import Stream from './components/Stream';
 import Select from 'react-select';
-
-const theme = {
-  global: {
-    font: {
-      family: 'Roboto',
-      size: '16px',
-      height: '20px',
-    },
-  },
-};
 
 class App extends Component {
   constructor(props) {
@@ -41,7 +35,8 @@ class App extends Component {
         excludedGames: []
       },
       loading: false,
-      lastCursor: ''
+      lastCursor: '',
+      activeIndex: [0]
     }
 
     this.getTopGames();
@@ -60,7 +55,7 @@ class App extends Component {
   isExcludedGame = (gameId) => this.state.excludeGames === 'true' && this.state.filters.excludedGames.includes(gameId);
 
   getTopGames = async () => {
-    const fetchedGames = await ws.get(TWITCH_API_PATH + 'games/top', {first: 100});
+    const fetchedGames = await ws.get(TWITCH_API_PATH + 'games/top', { first: 100 });
     let games = [];
 
     for (const game of fetchedGames.data)
@@ -75,7 +70,14 @@ class App extends Component {
     let counter = 0;
     let cursor = '';
 
-    this.setState({ loading: true });
+    this.setState({ 
+      loading: true,
+      activeIndex: []
+    });
+    if (!this.state.lastCursor) {
+      this.setState({streams: []});
+      window.scrollTo(0, 0);
+    }
 
     while (counter < MIN_STREAMS_PER_PAGE) {
       params = Object.assign({}, this.state.lastCursor ? { ...this.state.queryParams, after: this.state.lastCursor } : this.state.queryParams);
@@ -101,8 +103,8 @@ class App extends Component {
       } else
         cursor = fetchedStreams.pagination.cursor;
 
-      this.setState({ 
-        streams: streams, 
+      this.setState({
+        streams: streams,
         lastCursor: cursor
       });
     }
@@ -115,7 +117,7 @@ class App extends Component {
     let filters = { ...this.state.filters };
     filters[e.target.name] = e.target.value;
 
-    this.setState({ 
+    this.setState({
       filters: filters,
       lastCursor: ''
     });
@@ -125,14 +127,12 @@ class App extends Component {
     let languages = [];
     let queryParams = { ...this.state.queryParams };
 
-    if (selectedLanguages) {
-      for (const language of selectedLanguages) {
-          languages.push(language.value);
-      }
-    }
+    if (selectedLanguages)
+      for (const language of selectedLanguages)
+        languages.push(language.value);
 
     queryParams.language = languages;
-    this.setState({ 
+    this.setState({
       queryParams: queryParams,
       lastCursor: ''
     });
@@ -142,14 +142,12 @@ class App extends Component {
     let gameIds = [];
     let queryParams = { ...this.state.queryParams };
 
-    if (selectedGames) {
-      for (const game of selectedGames) {
+    if (selectedGames)
+      for (const game of selectedGames)
         gameIds.push(game.value);
-      }
-    }
 
     queryParams.game_id = gameIds;
-    this.setState({ 
+    this.setState({
       queryParams: queryParams,
       lastCursor: ''
     });
@@ -164,134 +162,152 @@ class App extends Component {
         gameIds.push(game.value);
 
     filters.excludedGames = gameIds;
-    this.setState({ 
+    this.setState({
       filters: filters,
       lastCursor: ''
     });
   }
 
   handleGameFilter = (e) => {
-    this.setState({ 
+    this.setState({
       excludeGames: e.target.value,
       lastCursor: ''
     })
   }
 
   render() {
+    console.log(this.state.activeIndex);
     return (
-      <Grommet theme={theme}>
-        <div className="filters">
-          <FormField
-            label="Viewers minimum"
-            htmlFor="min"
+      <Grommet>
+        <div className="filters__container">
+          <Accordion 
+            activeIndex={this.state.activeIndex} 
+            onActive={newActiveIndex => this.setState({ activeIndex: newActiveIndex })}
+            style={{overflow: 'hidden'}}
           >
-            <TextInput
-              type="number"
-              id="min"
-              name="min"
-              value={this.state.filters.min}
-              onChange={this.handleViewersInputs}
-            />
-          </FormField>
-          <FormField
-            label="Viewers maximum"
-            htmlFor="max"
-          >
-            <TextInput
-              type="number"
-              id="max"
-              name="max"
-              value={this.state.filters.max}
-              onChange={this.handleViewersInputs}
-            />
-          </FormField>
+            <AccordionPanel label="Filters">
+              <div className="filters">
+                <div className="filters__viewers">
+                  <h2>Viewers</h2>
+                  <div className="filters__line">
+                    <div className="filters__element">
+                      <label htmlFor="min">Min</label>
+                      <TextInput
+                        type="number"
+                        id="min"
+                        name="min"
+                        value={this.state.filters.min}
+                        onChange={this.handleViewersInputs}
+                      />
+                    </div>
 
-          <FormField
-            label="Stream language"
-            htmlFor="language"
-          >
-            <Select
-              id="language"
-              name="language"
-              options={TWITCH_LANGUAGES} 
-              isMulti 
-              onChange={this.setLanguage} 
-              defaultValue={{value: 'fr', label: 'Français' }} 
-            />
-          </FormField>
+                    <div className="filters__element">
+                      <label htmlFor="max">Max</label>
+                      <TextInput
+                        type="number"
+                        id="max"
+                        name="max"
+                        value={this.state.filters.max}
+                        onChange={this.handleViewersInputs}
+                      />
+                    </div>
+                  </div>
+                </div>
 
-          <RadioButton
-            label="Include"
-            name="game-filter"
-            value="false"
-            checked={this.state.excludeGames === "false"}
-            onChange={this.handleGameFilter}
-          />
-          <RadioButton
-            label="Exclude"
-            name="game-filter"
-            value="true"
-            checked={this.state.excludeGames === "true"}
-            onChange={this.handleGameFilter}
-          />
+                <div className="filters__games">
+                  <h2>Games</h2>
+                  <div className="filters__line">
+                    <div className="filters__radios">
+                      <RadioButton
+                        label="Include"
+                        name="game-filter"
+                        value="false"
+                        checked={this.state.excludeGames === "false"}
+                        onChange={this.handleGameFilter}
+                      />
+                      <RadioButton
+                        label="Exclude"
+                        name="game-filter"
+                        value="true"
+                        checked={this.state.excludeGames === "true"}
+                        onChange={this.handleGameFilter}
+                      />
+                    </div>
 
-          <FormField
-            label="Searched games"
-            htmlFor="game-id"
-            style={{display: this.state.excludeGames === "true" ? 'none' : 'block' }}
-          >
-            <Select
-              id="game-id"
-              name="game_id"
-              options={this.state.topGames} 
-              isMulti
-              onChange={this.setGame}
-            />
-          </FormField>
+                    <div className="filters__element" style={{ display: this.state.excludeGames === "true" ? 'none' : 'block' }}>
+                      <Select
+                        id="game-id"
+                        name="game_id"
+                        options={this.state.topGames}
+                        isMulti
+                        onChange={this.setGame}
+                        className="filters__element"
+                      />
+                    </div>
 
-          <FormField
-            label="Excluded games"
-            htmlFor="excluded-games"
-            style={{display: this.state.excludeGames === "true" ? 'block' : 'none' }}
-          >
-            <Select
-              id="excluded-games"
-              name="excluded_games"
-              options={this.state.topGames} 
-              isMulti
-              onChange={this.setExcludedGame}
-            />
-          </FormField>
+                    <div className="filters__element" style={{ display: this.state.excludeGames === "true" ? 'block' : 'none' }}>
+                      <Select
+                        id="excluded-games"
+                        name="excluded_games"
+                        options={this.state.topGames}
+                        isMulti
+                        onChange={this.setExcludedGame}
+                      />
+                    </div>
+                  </div>
+                </div>
 
-          <Button
-            label="Search"
-            onClick={this.getStreams}
-          />
+                <div className="filters__languages">
+                  <h2>Languages</h2>
+                  <div className="filters__line">
+                    <div className="filters__element">
+                      <Select
+                        id="language"
+                        name="language"
+                        options={TWITCH_LANGUAGES}
+                        isMulti
+                        onChange={this.setLanguage}
+                        defaultValue={{ value: 'fr', label: 'Français' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="button__container">
+                  <Button
+                    label="Search"
+                    onClick={this.getStreams}
+                  />
+                </div>
+              </div>
+            </AccordionPanel>
+          </Accordion>
         </div>
 
         <div className="streams__container">
           {this.state.streams.length ? (
-            <div className="streams">
-              {this.state.streams.map((stream, i) => (
-                <Stream key={i} {...stream} />
-              ))}
+            <div>
+              <div className="streams">
+                {this.state.streams.map((stream, i) => (
+                  <Stream key={i} {...stream} />
+                ))}
+              </div>
               <div>
-                {this.state.lastCursor ? (
+                {!this.state.loading && (
+                  this.state.lastCursor ? (
                   <Button
                     label="Load more"
                     onClick={this.getStreams}
                   />
-                ) : (
-                  <Paragraph>
-                    No more stream.
-                  </Paragraph>
+                  ) : (
+                    <p>No more stream.</p>
+                  )
                 )}
               </div>
             </div>
           ) : (
-            <Paragraph>
-              No stream was found with these filters.
-            </Paragraph>
+            !this.state.loading &&
+              <p>No stream was found with these filters.</p>
           )}
           {this.state.loading &&
             <div>

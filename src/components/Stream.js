@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Image, Paragraph } from 'grommet'
 
 class Stream extends Component {
     render() {
@@ -9,10 +8,10 @@ class Stream extends Component {
         return (
             <div className="stream">
                 <a href={`https://www.twitch.tv/${this.props.user_name}`} target="_blank" rel="noopener noreferrer">
-                    <Image src={thumbnail} />
-                    <Paragraph>{this.props.user_name}</Paragraph>
-                    <Paragraph>{this.props.title}</Paragraph>
-                    <Paragraph>{this.props.viewer_count}</Paragraph>
+                    <p className="stream__viewers">Viewers: {this.props.viewer_count}</p>
+                    <p className="stream__title">{this.props.title}</p>
+                    <img src={thumbnail} alt="Twitch stream" className="stream__thumbnail"/>
+                    <p className="stream__streamer">Streamer: {this.props.user_name}</p>
                 </a>
             </div>
         );
