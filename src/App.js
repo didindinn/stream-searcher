@@ -1,6 +1,6 @@
 /* TODO
 - Style
-- Errors handling
+- BUG : Selects dropdowns overflow
 - Display API fetch ratelimits
 - User connection to increase ratelimits
 - Add game played in stream details
@@ -15,6 +15,8 @@ import ws from './utils/web_service';
 import { TWITCH_API_PATH, TWITCH_LANGUAGES, MIN_STREAMS_PER_PAGE } from './utils/constants';
 import Stream from './components/Stream';
 import Select from 'react-select';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 class App extends Component {
   constructor(props) {
@@ -43,19 +45,20 @@ class App extends Component {
   }
 
   hasFilters = () => this.state.filters.min !== '' || this.state.filters.max !== '' || this.state.filters.excludedGames.length;
-  inViewersRange = (viewerCount) => {
-    if (
-      (this.state.filters.min !== '' && viewerCount < this.state.filters.min) ||
-      (this.state.filters.max !== '' && viewerCount > this.state.filters.max)
-    )
-      return false;
-
-    return true;
-  }
+  inMinRange = (viewerCount) => this.state.filters.min === '' || viewerCount > this.state.filters.min;
+  inMaxRange = (viewerCount) => this.state.filters.max === '' || viewerCount < this.state.filters.max;
   isExcludedGame = (gameId) => this.state.excludeGames === 'true' && this.state.filters.excludedGames.includes(gameId);
 
   getTopGames = async () => {
     const fetchedGames = await ws.get(TWITCH_API_PATH + 'games/top', { first: 100 });
+
+    if (fetchedGames.error) {
+      toast.error(fetchedGames.error, {
+        position: toast.POSITION.TOP_CENTER
+      });
+      return;
+    }
+
     let games = [];
 
     for (const game of fetchedGames.data)
@@ -85,9 +88,26 @@ class App extends Component {
 
       const fetchedStreams = await ws.get(TWITCH_API_PATH + 'streams', params);
 
+      if (fetchedStreams.error) {
+        toast.error(fetchedStreams.error, {
+          position: toast.POSITION.TOP_CENTER
+        });
+        break;
+      }
+
+      if (fetchedStreams.data.length < 100) {
+        cursor = '';
+        counter = MIN_STREAMS_PER_PAGE;
+      } else
+        cursor = fetchedStreams.pagination.cursor;
+
       if (this.hasFilters()) {
         for (const stream of fetchedStreams.data) {
-          if (this.inViewersRange(stream.viewer_count) && !this.isExcludedGame(stream.game_id)) {
+          if (!this.inMinRange(stream.viewer_count)) {
+            counter = MIN_STREAMS_PER_PAGE;
+            break;
+          }
+          if (this.inMaxRange(stream.viewer_count) && !this.isExcludedGame(stream.game_id)) {
             streams.push(stream);
             counter++;
           }
@@ -96,12 +116,6 @@ class App extends Component {
         streams.push(...fetchedStreams.data);
         counter = MIN_STREAMS_PER_PAGE;
       }
-
-      if (fetchedStreams.data.length < 100) {
-        cursor = '';
-        counter = MIN_STREAMS_PER_PAGE;
-      } else
-        cursor = fetchedStreams.pagination.cursor;
 
       this.setState({
         streams: streams,
@@ -176,9 +190,9 @@ class App extends Component {
   }
 
   render() {
-    console.log(this.state.activeIndex);
     return (
       <Grommet>
+        <ToastContainer />
         <div className="filters__container">
           <Accordion 
             activeIndex={this.state.activeIndex} 
@@ -241,7 +255,7 @@ class App extends Component {
                         options={this.state.topGames}
                         isMulti
                         onChange={this.setGame}
-                        className="filters__element"
+                        className="filters__element filters__select"
                       />
                     </div>
 

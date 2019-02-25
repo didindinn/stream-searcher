@@ -8,7 +8,6 @@ class WS {
                 'Content-Type': 'application/json',
                 'Client-ID': TWITCH_CLIENT_ID
             },
-            mode: 'cors'
         };
 
         return args;
@@ -25,13 +24,8 @@ class WS {
         return new Promise((resolve, reject) => {
             fetch(endPoint, options)
                 .then(res => res.json())
-                .then(res => {
-                    return res;
-                })
                 .then(data => resolve(data))
-                .catch(error => {
-                    console.error(error);
-                });
+                .catch(error => {console.error(error)});
         });
     }
 }
