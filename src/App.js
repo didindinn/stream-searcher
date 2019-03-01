@@ -1,11 +1,9 @@
 /* TODO
 - Style
-- BUG : Selects dropdowns overflow
 - Display API fetch ratelimits
 - User connection to increase ratelimits
 - Add game played in stream details
 - PWA
-- Avoid duplicate entries
 */
 
 import React, { Component } from 'react';
@@ -255,7 +253,7 @@ class App extends Component {
                         options={this.state.topGames}
                         isMulti
                         onChange={this.setGame}
-                        className="filters__element filters__select"
+                        menuPortalTarget={document.querySelector('body')}
                       />
                     </div>
 
@@ -266,6 +264,7 @@ class App extends Component {
                         options={this.state.topGames}
                         isMulti
                         onChange={this.setExcludedGame}
+                        menuPortalTarget={document.querySelector('body')}
                       />
                     </div>
                   </div>
@@ -282,6 +281,7 @@ class App extends Component {
                         isMulti
                         onChange={this.setLanguage}
                         defaultValue={{ value: 'fr', label: 'Français' }}
+                        menuPortalTarget={document.querySelector('body')}
                       />
                     </div>
                   </div>
