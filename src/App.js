@@ -1,9 +1,7 @@
 /* TODO
 - Style
-- Display API fetch ratelimits
 - User connection to increase ratelimits
 - Add game played in stream details
-- PWA
 */
 
 import React, { Component } from 'react';

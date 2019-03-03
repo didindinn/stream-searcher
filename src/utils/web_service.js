@@ -5,7 +5,6 @@ class WS {
     getDefaultRequestOptions() {
         let args = {
             headers: {
-                'Content-Type': 'application/json',
                 'Client-ID': TWITCH_CLIENT_ID
             },
         };
