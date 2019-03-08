@@ -25,18 +25,6 @@ h2 {
   font-size: 95%;
 }
 
-.streams__container {
-  text-align: center;
-  padding-top: 1em;
-  margin-top: 72px;
-}
-
-.streams {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-}
-
 .loading-spinner {
   display: inline-block;
   position: relative;
@@ -74,7 +62,7 @@ h2 {
   }
 }
 
-.filters__container {
+header {
   position: fixed;
   top: 0;
   width: 100%;
@@ -82,61 +70,87 @@ h2 {
   background: white;
 }
 
-.filters {
-  padding-bottom: 1em;
-  max-width: 1200px;
-  margin: auto;
-  width: 100%;
-}
-
-.filters__line {
-  display: flex;
-  padding: 0 1em;
-}
-
-  .filters__viewers .filters__element:first-child {
-    margin-right: 1em;
+  .filters {
+    padding-bottom: 1em;
+    max-width: 1200px;
+    margin: auto;
+    width: 100%;
+    display: none;
   }
 
-  .filters__radios {
-    display: flex;
+  .filters--expanded {
+    display: block;
   }
 
-    .filters__radios label {
+    .filters__line {
+      display: flex;
+      padding: 0 1em;
+    }
+
+    .filters__viewers .filters__element:first-child {
       margin-right: 1em;
     }
 
-  .filters__games {
-    flex-grow: 1;
-  }
+    .filters__viewers .filters__element {
+      display: flex;
+      flex-direction: column;
+    }
 
-  .filters__element {
-    flex-grow: 1;
-  }
+    .filters__radios {
+      display: flex;
+      align-items: center;
+    }
 
-  .button__container {
-    text-align: center;
-    margin-top: 1em;
-  }
+      .radio {
+        margin-right: 1em;
+      }
 
-.stream {
-  max-width: 400px;
-  margin-bottom: 2em;
-  border: 1px solid purple;
+    .filters__games {
+      flex-grow: 1;
+    }
+
+    .filters__element {
+      flex-grow: 1;
+    }
+
+    .button__container {
+      text-align: center;
+      margin-top: 1em;
+    }
+
+.content {
+  text-align: center;
+  padding-top: 1em;
+  margin-top: 72px;
 }
 
-  .stream__title {
-    height: 48px;
-    overflow: hidden;
-    margin-bottom: 1em;
+  .profile__container {
+    text-align: center;
   }
 
-  .stream__thumbnail {
-    max-width: 100%;
+  .streams {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
   }
+
+    .stream {
+      max-width: 400px;
+      margin-bottom: 2em;
+      border: 1px solid purple;
+    }
+
+      .stream__title {
+        height: 48px;
+        overflow: hidden;
+        margin-bottom: 1em;
+      }
+
+      .stream__thumbnail {
+        max-width: 100%;
+      }
 
 @media screen and (max-width: 500px) {
-  
   .filters__line {
     flex-direction: column;
   }
@@ -150,4 +164,4 @@ h2 {
   .filters__languages {
     margin-bottom: 1em;
   }
-} 
+}

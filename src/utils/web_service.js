@@ -1,13 +1,18 @@
 import qs from 'query-string';
-import { TWITCH_CLIENT_ID } from './constants';
+import { COOKIE_NAME, TWITCH_CLIENT_ID } from './constants';
+import cookies from 'browser-cookies';
+import { isAuthenticated } from './user';
 
 class WS {
     getDefaultRequestOptions() {
         let args = {
-            headers: {
-                'Client-ID': TWITCH_CLIENT_ID
-            },
+            headers: {}
         };
+
+        if (isAuthenticated())
+            args.headers['Authorization'] = `Bearer ${cookies.get(COOKIE_NAME)}`;
+        else
+            args.headers['Client-ID'] = TWITCH_CLIENT_ID
 
         return args;
     }
