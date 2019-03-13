@@ -5,7 +5,7 @@ export const TWITCH_AUTH_PATH = 'https://id.twitch.tv/oauth2/';
 export const COOKIE_NAME = 'stream_searcher_token';
 export const TWITCH_AUTH_PARAMS = {
     client_id: TWITCH_CLIENT_ID,
-    redirect_uri: 'http://localhost:3000',
+    redirect_uri: 'http://stream-searcher.surge.sh',
     response_type: 'token',
     scope: ''
 }
