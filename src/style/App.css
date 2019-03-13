@@ -22,7 +22,22 @@ a {
 }
 
 h2 {
-  font-size: 95%;
+  font-size: 150%;
+  margin-bottom: 1em;
+}
+
+label {
+  font-size: 120%;
+}
+
+button {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.icon {
+  fill: purple;
 }
 
 .loading-spinner {
@@ -62,29 +77,80 @@ h2 {
   }
 }
 
+.input__number {
+  height: 38px;
+  width: 100%;
+}
+
+.input__label {
+  margin-bottom: .5em;
+}
+
 header {
   position: fixed;
   top: 0;
-  width: 100%;
-  z-index: 1;
   background: white;
+  padding: 1em;
+  display: flex;
+  justify-content: center;
 }
 
-  .filters {
-    padding-bottom: 1em;
-    max-width: 1200px;
-    margin: auto;
-    width: 100%;
-    display: none;
+  .filters__button {
+    margin-right: 2em;
   }
 
-  .filters--expanded {
-    display: block;
+  .filters__button,
+  .user__button {
+    font-size: 120%;
+    cursor: pointer;
   }
+
+    .filters__icon,
+    .user__icon {
+      width: 25px;
+      height: 25px;
+      display: block;
+      fill: purple;
+      margin: auto;
+    }
+
+  .filters__container {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    background-color: white;
+    top: 0;
+    left: 0;
+    display: none;
+    z-index: 10;
+    overflow-y: auto;
+  }
+
+  .filters__container--displayed {
+    display: flex;
+    padding: 0 2em;
+  }
+
+    .filters__closer {
+      position: absolute;
+      right: 1em;
+      top: 1em;
+      cursor: pointer;
+    }
+
+    .filters__closer .icon {
+      width: 30px;
+    }
+
+    .filters {
+      max-width: 1200px;
+      margin: auto;
+      width: 100%;
+    }
 
     .filters__line {
-      display: flex;
       padding: 0 1em;
+      display: flex;
     }
 
     .filters__viewers .filters__element:first-child {
@@ -98,6 +164,7 @@ header {
 
     .filters__radios {
       display: flex;
+      margin-bottom: 1em;
       align-items: center;
     }
 
@@ -111,6 +178,7 @@ header {
 
     .filters__element {
       flex-grow: 1;
+      margin-bottom: 1em;
     }
 
     .button__container {
@@ -120,8 +188,8 @@ header {
 
 .content {
   text-align: center;
-  padding-top: 1em;
-  margin-top: 72px;
+  padding: 1em;
+  margin-top: 80px;
 }
 
   .profile__container {
@@ -150,7 +218,15 @@ header {
         max-width: 100%;
       }
 
+.no-scroll {
+  overflow: hidden;
+}
+
 @media screen and (max-width: 500px) {
+  header {
+    width: 100%;
+  }
+
   .filters__line {
     flex-direction: column;
   }
