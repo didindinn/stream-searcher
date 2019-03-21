@@ -10,7 +10,10 @@ class Stream extends Component {
                 <a href={`https://www.twitch.tv/${this.props.user_name}`} target="_blank" rel="noopener noreferrer">
                     <p className="stream__viewers">Viewers: {this.props.viewer_count}</p>
                     <p className="stream__title">{this.props.title}</p>
-                    <img src={thumbnail} alt="Twitch stream" className="stream__thumbnail"/>
+                    <img src={thumbnail} alt="Twitch stream" className="stream__thumbnail" />
+                    {this.props.game_name &&
+                        <p className="stream__game">{this.props.game_name}</p>
+                    }
                     <p className="stream__streamer">Streamer: {this.props.user_name}</p>
                 </a>
             </div>

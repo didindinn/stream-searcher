@@ -1,8 +1,7 @@
 /* TODO
 - Style
-- Add game played in stream details, only is authenticated
 - Pagination only with load more, refresh on search
-- Add game search when not on the list
+- Add game search when not on the list or increase games list
 - Mandatory language selection
 */
 
@@ -121,6 +120,9 @@ class App extends Component {
         counter = MIN_STREAMS_PER_PAGE;
       }
 
+      if (this.state.logged)
+        this.getGames(streams);
+
       this.setState({
         streams: streams,
         lastCursor: cursor
@@ -129,6 +131,31 @@ class App extends Component {
 
     this.setState({ loading: false });
     counter = 0;
+  }
+
+  getGames = async (streams) => {
+    let gameIds = [];
+
+    for (const stream of streams)
+        if (!gameIds.includes(stream.game_id))
+          gameIds.push(stream.game_id);
+
+    const fetchedGames = await ws.get(TWITCH_API_PATH + 'games', {id: gameIds});
+
+    if (fetchedGames.error) {
+      toast.error(fetchedGames.error, {
+        position: toast.POSITION.TOP_CENTER
+      });
+    }
+
+    for (const stream of streams) {
+      const game = fetchedGames.data.filter(obj => obj.id === stream.game_id);
+      stream.game_name = game[0].name;
+    }
+
+    this.setState({
+      streams: streams,
+    });
   }
 
   handleViewersInputs = (e) => {
@@ -360,7 +387,7 @@ class App extends Component {
             <div>
               <div className="streams">
                 {this.state.streams.map((stream, i) => (
-                  <Stream key={i} {...stream} />
+                  <Stream key={i} logged={this.state.logged} {...stream} />
                 ))}
               </div>
               <div>
