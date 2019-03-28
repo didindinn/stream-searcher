@@ -6,7 +6,8 @@ import { isAuthenticated } from './user';
 class WS {
     getDefaultRequestOptions() {
         let args = {
-            headers: {}
+            headers: {},
+            mode: 'cors'
         };
 
         if (isAuthenticated())
@@ -29,7 +30,7 @@ class WS {
             fetch(endPoint, options)
                 .then(res => res.json())
                 .then(data => resolve(data))
-                .catch(error => {console.error(error)});
+                .catch(error => console.error(error));
         });
     }
 }

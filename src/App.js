@@ -3,6 +3,8 @@
 - Pagination only with load more, refresh on search
 - Add game search when not on the list or increase games list
 - Mandatory language selection
+- BUG : CORS on Firefox
+- Reset filters
 */
 
 import React, { Component } from 'react';
@@ -17,6 +19,10 @@ import 'react-toastify/dist/ReactToastify.css';
 import qs from 'query-string';
 import { checkAuthentication, disconnect, isAuthenticated } from './utils/user';
 
+let gamesIds = [];
+let games = [];
+let toastId = 0;
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -24,6 +30,8 @@ class App extends Component {
     this.state = {
       streams: [],
       topGames: [],
+      gamesIds: [],
+      games: [],
       excludeGames: 'false',
       queryParams: {
         first: 100,
@@ -49,6 +57,18 @@ class App extends Component {
       this.setState({ logged: true });
   }
 
+  notifyError = (error) => {
+    if (toast.isActive(toastId)) return;
+
+    const id = Math.random();
+    toastId = id;
+
+    toast.error(error, {
+      toastId: id,
+      position: toast.POSITION.TOP_CENTER
+    });
+  }
+
   hasFilters = () => this.state.filters.min !== '' || this.state.filters.max !== '' || this.state.filters.excludedGames.length;
   inMinRange = (viewerCount) => this.state.filters.min === '' || viewerCount > this.state.filters.min;
   inMaxRange = (viewerCount) => this.state.filters.max === '' || viewerCount < this.state.filters.max;
@@ -58,9 +78,7 @@ class App extends Component {
     const fetchedGames = await ws.get(TWITCH_API_PATH + 'games/top', { first: 100 });
 
     if (fetchedGames.error) {
-      toast.error(fetchedGames.error, {
-        position: toast.POSITION.TOP_CENTER
-      });
+      this.notifyError(fetchedGames.error);
       return;
     }
 
@@ -74,6 +92,7 @@ class App extends Component {
 
   getStreams = async () => {
     let streams = this.state.lastCursor ? this.state.streams : [];
+    let tmpStreams = [];
     let params = {};
     let counter = 0;
     let cursor = '';
@@ -111,17 +130,18 @@ class App extends Component {
             break;
           }
           if (this.inMaxRange(stream.viewer_count) && !this.isExcludedGame(stream.game_id)) {
-            streams.push(stream);
+            tmpStreams.push(stream);
             counter++;
           }
         };
       } else {
-        streams.push(...fetchedStreams.data);
+        tmpStreams.push(...fetchedStreams.data);
         counter = MIN_STREAMS_PER_PAGE;
       }
 
-      if (this.state.logged)
-        this.getGames(streams);
+      this.getGames(tmpStreams);
+
+      streams.push(...tmpStreams);
 
       this.setState({
         streams: streams,
@@ -133,29 +153,44 @@ class App extends Component {
     counter = 0;
   }
 
-  getGames = async (streams) => {
-    let gameIds = [];
+  getGames = async (newStreams) => {
+    let newGamesIds = [];
 
-    for (const stream of streams)
-        if (!gameIds.includes(stream.game_id))
-          gameIds.push(stream.game_id);
+    for (const stream of newStreams)
+        if (!gamesIds.includes(stream.game_id) && !newGamesIds.includes(stream.game_id))
+          newGamesIds.push(stream.game_id);
 
-    const fetchedGames = await ws.get(TWITCH_API_PATH + 'games', {id: gameIds});
+    if (newGamesIds.length === 0)
+      return;
+
+    gamesIds.push(newGamesIds);
+    const fetchedGames = await ws.get(TWITCH_API_PATH + 'games', {id: newGamesIds});
 
     if (fetchedGames.error) {
-      toast.error(fetchedGames.error, {
-        position: toast.POSITION.TOP_CENTER
-      });
+      this.notifyError(fetchedGames.error);
+
+      return;
     }
+
+    games.push(...fetchedGames.data);
+
+    this.updateStreams(newStreams);
+  }
+
+  updateStreams = (newStreams) => {
+    let streams = this.state.streams;
 
     for (const stream of streams) {
-      const game = fetchedGames.data.filter(obj => obj.id === stream.game_id);
-      stream.game_name = game[0].name;
-    }
+      for (const newStream of newStreams) {
+        if (stream.id === newStream.id) {
+          const game = games.filter(obj => obj.id === newStream.game_id);
+          if (game[0])
+            newStream.game_name = game[0].name;
+        }
+      }
+    };
 
-    this.setState({
-      streams: streams,
-    });
+    this.setState({streams: streams});
   }
 
   handleViewersInputs = (e) => {
