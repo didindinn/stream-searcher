@@ -22,6 +22,7 @@ import { checkAuthentication, disconnect, isAuthenticated } from './utils/user';
 let gamesIds = [];
 let games = [];
 let toastId = 0;
+let lastCursor = '';
 
 class App extends Component {
   constructor(props) {
@@ -44,7 +45,6 @@ class App extends Component {
         excludedGames: []
       },
       loading: false,
-      lastCursor: '',
       filtersDisplayed: true,
       logged: false
     }
@@ -91,37 +91,34 @@ class App extends Component {
   }
 
   getStreams = async () => {
-    let streams = this.state.lastCursor ? this.state.streams : [];
+    let streams = lastCursor ? this.state.streams : [];
     let tmpStreams = [];
     let params = {};
     let counter = 0;
-    let cursor = '';
 
     this.setState({loading: true});
     this.hideFilters();
-    if (!this.state.lastCursor) {
+    if (!lastCursor) {
       this.setState({ streams: [] });
       window.scrollTo(0, 0);
     }
 
     while (counter < MIN_STREAMS_PER_PAGE) {
-      params = Object.assign({}, this.state.lastCursor ? { ...this.state.queryParams, after: this.state.lastCursor } : this.state.queryParams);
+      params = Object.assign({}, lastCursor ? { ...this.state.queryParams, after: lastCursor } : this.state.queryParams);
       if (this.state.excludeGames === 'true') params.game_id = [];
 
       const fetchedStreams = await ws.get(TWITCH_API_PATH + 'streams', params);
 
       if (fetchedStreams.error) {
-        toast.error(fetchedStreams.error, {
-          position: toast.POSITION.TOP_CENTER
-        });
+        this.notifyError(fetchedStreams.error);
         break;
       }
 
       if (fetchedStreams.data.length < 100) {
-        cursor = '';
+        lastCursor = '';
         counter = MIN_STREAMS_PER_PAGE;
       } else
-        cursor = fetchedStreams.pagination.cursor;
+        lastCursor = fetchedStreams.pagination.cursor;
 
       if (this.hasFilters()) {
         for (const stream of fetchedStreams.data) {
@@ -143,10 +140,7 @@ class App extends Component {
 
       streams.push(...tmpStreams);
 
-      this.setState({
-        streams: streams,
-        lastCursor: cursor
-      });
+      this.setState({streams: streams});
     }
 
     this.setState({ loading: false });
@@ -381,7 +375,7 @@ class App extends Component {
           </div>
 
           <div className="button__container">
-            <button onClick={this.getStreams}>Search</button>
+            <button onClick={() => {lastCursor = ''; this.getStreams();}}>Search</button>
           </div>
           </div>
         </div>
@@ -427,7 +421,7 @@ class App extends Component {
               </div>
               <div>
                 {!this.state.loading && (
-                  this.state.lastCursor ? (
+                  lastCursor ? (
                     <button onClick={this.getStreams}>Load more</button>
                   ) : (
                       <p>No more stream.</p>
