@@ -30,7 +30,7 @@ class WS {
             fetch(endPoint, options)
                 .then(res => res.json())
                 .then(data => resolve(data))
-                .catch(error => console.error(error));
+                .catch(error => resolve({error: error}));
         });
     }
 }

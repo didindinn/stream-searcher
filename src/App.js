@@ -1,8 +1,6 @@
 /* TODO
 - Style
-- Add game search when not on the list or increase games list
-- BUG : CORS on Firefox
-- Code cleaning
+- Add game search when not on the list
 */
 
 import React, { Component } from 'react';
@@ -16,6 +14,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import qs from 'query-string';
 import { checkAuthentication, disconnect, isAuthenticated } from './utils/user';
+import NumberInput from './components/NumberInput';
+import RadioInput from './components/RadioInput';
 
 let gamesIds = [];
 let games = [];
@@ -122,6 +122,7 @@ class App extends Component {
       if (this.hasFilters()) {
         for (const stream of fetchedStreams.data) {
           if (!this.inMinRange(stream.viewer_count)) {
+            lastCursor = '';
             counter = MIN_STREAMS_PER_PAGE;
             break;
           }
@@ -137,9 +138,7 @@ class App extends Component {
 
       this.getGames(tmpStreams);
 
-      streams.push(...tmpStreams);
-
-      this.setState({ streams: streams });
+      this.setState({ streams: [...streams, ...tmpStreams]});
     }
 
     this.setState({ loading: false });
@@ -244,7 +243,8 @@ class App extends Component {
 
   handleGameFilter = (e) => {
     lastCursor = '';
-    this.setState({excludeGames: e.target.value})
+    const value = e.target.value;
+    this.setState({excludeGames: value})
   }
 
   hideFilters = () => {
@@ -281,27 +281,11 @@ class App extends Component {
               <h2>Viewers</h2>
               <div className="filters__line">
                 <div className="filters__element">
-                  <label htmlFor="min" className="input__label">Min</label>
-                  <input
-                    type="number"
-                    id="min"
-                    name="min"
-                    value={this.state.filters.min}
-                    onChange={this.handleViewersInputs}
-                    className="input__number"
-                  />
+                  <NumberInput id="min" value={this.state.filters.min} onChange={this.handleViewersInputs}>Min</NumberInput>
                 </div>
 
                 <div className="filters__element">
-                  <label htmlFor="max" className="input__label">Max</label>
-                  <input
-                    type="number"
-                    id="max"
-                    name="max"
-                    value={this.state.filters.max}
-                    onChange={this.handleViewersInputs}
-                    className="input__number"
-                  />
+                  <NumberInput id="max" value={this.state.filters.max} onChange={this.handleViewersInputs}>Max</NumberInput>
                 </div>
               </div>
             </div>
@@ -310,29 +294,23 @@ class App extends Component {
               <h2>Games</h2>
               <div className="filters__line">
                 <div className="filters__radios">
-                  <label htmlFor="include">Include</label>
-                  <input
-                    className="radio"
-                    type="radio"
-                    id="include"
-                    label="Include"
-                    name="game-filter"
-                    value="false"
-                    checked={this.state.excludeGames === "false"}
+                  <RadioInput 
+                    id="include" 
+                    value="false" 
+                    checked={this.state.excludeGames === "false"} 
                     onChange={this.handleGameFilter}
-                  />
+                  >
+                    Include
+                  </RadioInput>
 
-                  <label htmlFor="exclude">Exclude</label>
-                  <input
-                    className="radio"
-                    type="radio"
-                    id="exclude"
-                    label="Exclude"
-                    name="game-filter"
-                    value="true"
-                    checked={this.state.excludeGames === "true"}
+                  <RadioInput 
+                    id="exclude" 
+                    value="true" 
+                    checked={this.state.excludeGames === "true"} 
                     onChange={this.handleGameFilter}
-                  />
+                  >
+                    Exclude
+                  </RadioInput>
                 </div>
 
                 <div className="filters__element" style={{ display: this.state.excludeGames === "true" ? 'none' : 'block' }}>
