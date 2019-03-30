@@ -9,6 +9,22 @@ export const TWITCH_AUTH_PARAMS = {
     response_type: 'token',
     scope: ''
 }
+export const INITIAL_STATE = {
+    excludeGames: 'false',
+    excludedGames: [],
+    includedGames: [],
+    languages: [{ value: 'fr', label: 'Français' }],
+    queryParams: {
+        first: 100,
+        language: ['fr'],
+        game_id: []
+    },
+    filters: {
+        min: '',
+        max: '',
+        excludedGames: []
+    }
+};
 export const TWITCH_LANGUAGES = [
     { value: 'en', label: 'English' },
     { value: 'da', label: 'Dansk' },

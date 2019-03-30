@@ -186,6 +186,10 @@ header {
       margin-top: 1em;
     }
 
+      .button__container button:first-child {
+        margin-right: 1em;
+      }
+
 .content {
   text-align: center;
   padding: 1em;
