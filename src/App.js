@@ -1,5 +1,4 @@
 /* TODO
-- Style
 - Add game search when not on the list
 */
 
@@ -21,6 +20,12 @@ let gamesIds = [];
 let games = [];
 let toastId = 0;
 let lastCursor = '';
+const selectStyle = {
+  control: (provided, state) => ({
+    ...provided,
+    border: '1px solid purple',
+  }),
+}
 
 class App extends Component {
   constructor(props) {
@@ -260,7 +265,10 @@ class App extends Component {
   login = () => document.location.href = `${TWITCH_AUTH_PATH}authorize?${qs.stringify(TWITCH_AUTH_PARAMS)}`;
   logoff = () => this.setState({ logged: disconnect() });
 
-  reset = () => this.setState({...INITIAL_STATE});
+  reset = () => {
+    lastCursor = '';
+    this.setState({...INITIAL_STATE})
+  };
 
   render() {
     let filtersClass = this.state.filtersDisplayed ? 'filters__container filters__container--displayed' : 'filters__container';
@@ -321,6 +329,7 @@ class App extends Component {
                     isMulti
                     onChange={this.setGame}
                     value={this.state.includedGames}
+                    styles={selectStyle}
                   />
                 </div>
 
@@ -332,6 +341,7 @@ class App extends Component {
                     isMulti
                     onChange={this.setExcludedGame}
                     value={this.state.excludedGames}
+                    styles={selectStyle}
                   />
                 </div>
               </div>
@@ -348,14 +358,15 @@ class App extends Component {
                     isMulti
                     onChange={this.setLanguage}
                     value={this.state.languages}
+                    styles={selectStyle}
                   />
                 </div>
               </div>
             </div>
 
             <div className="button__container">
-              <button onClick={this.reset}>Reset</button>
-              <button onClick={() => { lastCursor = ''; this.getStreams(); }}>Search</button>
+              <button className="button button--secondary button__reset" onClick={this.reset}>Reset</button>
+              <button className="button button--primary button__search" onClick={() => { lastCursor = ''; this.getStreams(); }}>Search</button>
             </div>
           </div>
         </div>
@@ -402,7 +413,7 @@ class App extends Component {
               <div>
                 {!this.state.loading && (
                   lastCursor ? (
-                    <button onClick={this.getStreams}>Load more</button>
+                    <button className="button button--primary button__more" onClick={this.getStreams}>Load more</button>
                   ) : (
                       <p>No more stream.</p>
                     )

@@ -1,3 +1,36 @@
+@font-face {
+  font-family: 'robotobold';
+  src: url('fonts/roboto-bold-webfont.woff2') format('woff2'),
+      url('fonts/roboto-bold-webfont.woff') format('woff'),
+      url('fonts/roboto-bold-webfont.ttf') format('truetype'),
+      url('fonts/roboto-bold-webfont.svg#robotobold') format('svg');
+  font-weight: normal;
+  font-style: normal;
+
+}
+
+@font-face {
+  font-family: 'roboto_lightregular';
+  src: url('fonts/roboto-light-webfont.woff2') format('woff2'),
+      url('fonts/roboto-light-webfont.woff') format('woff'),
+      url('fonts/roboto-light-webfont.ttf') format('truetype'),
+      url('fonts/roboto-light-webfont.svg#roboto_lightregular') format('svg');
+  font-weight: normal;
+  font-style: normal;
+
+}
+
+@font-face {
+  font-family: 'robotoregular';
+  src: url('fonts/roboto-regular-webfont.woff2') format('woff2'),
+      url('fonts/roboto-regular-webfont.woff') format('woff'),
+      url('fonts/roboto-regular-webfont.ttf') format('truetype'),
+      url('fonts/roboto-regular-webfont.svg#robotoregular') format('svg');
+  font-weight: normal;
+  font-style: normal;
+
+}
+
 *,
 *:before,
 *:after {
@@ -9,7 +42,8 @@ html {
 }
 
 body {
-  font-family: 'Roboto';
+  font-family: 'robotoregular';
+  color: rgba(0,0,0,.87);
 }
 
 p {
@@ -34,6 +68,35 @@ button {
   background: none;
   border: none;
   padding: 0;
+  min-width: 60px;
+  font-size: 105%;
+  letter-spacing: .1em;
+  cursor: pointer;
+}
+
+.button {
+  font-family: 'robotobold';
+  text-transform: uppercase;
+  padding: 0.2em.5em;
+  border-radius: 4px;
+}
+
+.button--primary {
+    background: purple;
+    color: #f8f8f8;
+    border: 1px solid purple;
+    transition: color .3s, background .3s;
+}
+
+.button--primary:hover {
+  background: #f8f8f8;
+  color: purple;
+  transition: color .3s, background .3s;
+}
+
+.button--secondary {
+  background: #f8f8f8;
+  color: purple;
 }
 
 .icon {
@@ -80,6 +143,12 @@ button {
 .input__number {
   height: 38px;
   width: 100%;
+  border-radius: 4px;
+  border: 1px solid purple;
+}
+
+.input__number:hover {
+  border-color: hsl(0,0%,70%);
 }
 
 .input__label {
@@ -89,10 +158,13 @@ button {
 header {
   position: fixed;
   top: 0;
+  right: 0;
   background: white;
   padding: 1em;
   display: flex;
   justify-content: center;
+  z-index: 5;
+  box-shadow: 0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 1px 3px 0 rgba(0,0,0,.12);
 }
 
   .filters__button {
@@ -186,7 +258,7 @@ header {
       margin-top: 1em;
     }
 
-      .button__container button:first-child {
+      .button__reset {
         margin-right: 1em;
       }
 
@@ -209,18 +281,43 @@ header {
     .stream {
       max-width: 400px;
       margin-bottom: 2em;
-      border: 1px solid purple;
+      background: #f8f8f8;
+      box-shadow: 0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 1px 3px 0 rgba(0,0,0,.12);
     }
 
-      .stream__title {
-        height: 48px;
-        overflow: hidden;
-        margin-bottom: 1em;
+      .stream__info {
+        padding: .5em;
+        text-align: left;
       }
 
-      .stream__thumbnail {
-        max-width: 100%;
+        .stream__title {
+          overflow: hidden;
+          margin-bottom: .5em;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          font-family: 'robotobold';
+        }
+
+        .stream__streamer {
+          margin-bottom: .5em;
+        }
+
+      .stream__thumbnail-container {
+        position: relative;
       }
+
+        .stream__viewers {
+          position: absolute;
+          width: 100%;
+          color: white;
+          background: #80008080;
+          font-size: 115%;
+          padding: .2em;
+        }
+
+        .stream__thumbnail {
+          max-width: 100%;
+        }
 
 .no-scroll {
   overflow: hidden;
