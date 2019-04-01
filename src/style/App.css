@@ -262,6 +262,16 @@ header {
         margin-right: 1em;
       }
 
+    .github__container {
+      text-align: center;
+      font-family: 'roboto_lightregular';
+      margin-top: 2em;
+    }
+
+      .github {
+        text-decoration: underline;
+      }
+
 .content {
   text-align: center;
   padding: 1em;
