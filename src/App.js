@@ -15,6 +15,7 @@ import qs from 'query-string';
 import { checkAuthentication, disconnect, isAuthenticated } from './utils/user';
 import NumberInput from './components/NumberInput';
 import RadioInput from './components/RadioInput';
+import ReactGA from 'react-ga';
 
 let gamesIds = [];
 let games = [];
@@ -55,7 +56,11 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.getTopGames()
+    ReactGA.initialize('UA-138691577-1');
+    ReactGA.set({ anonymizeIp: true });
+    ReactGA.pageview(window.location.pathname + window.location.search);
+
+    this.getTopGames();
 
     if (isAuthenticated() || checkAuthentication())
       this.setState({ logged: true });
@@ -94,6 +99,49 @@ class App extends Component {
     this.setState({ topGames: games });
   }
 
+  sendGAEvents = () => {
+    ReactGA.event({
+      category: 'User',
+      action: 'Search for streams'
+    });
+
+    if (this.state.queryParams.language.length)
+      ReactGA.event({
+        category: 'Filters',
+        action: 'Languages',
+        label: JSON.stringify(this.state.queryParams.language)
+      });
+
+    if (this.state.filters.min !== '')
+      ReactGA.event({
+        category: 'Filters',
+        action: 'Min viewers',
+        label: this.state.filters.min
+      });
+
+    if (this.state.filters.max !== '')
+      ReactGA.event({
+        category: 'Filters',
+        action: 'Max viewers',
+        label: this.state.filters.max
+      });
+
+
+    if (this.state.includedGames.length && this.state.excludeGames === 'false')
+      ReactGA.event({
+        category: 'Filters',
+        action: 'Included games',
+        label: JSON.stringify(this.state.includedGames)
+      });
+
+    if (this.state.excludedGames.length && this.state.excludeGames === 'true')
+      ReactGA.event({
+        category: 'Filters',
+        action: 'Excluded games',
+        label: JSON.stringify(this.state.excludedGames)
+      });
+  }
+
   getStreams = async () => {
     let streams = lastCursor ? this.state.streams : [];
     let tmpStreams = [];
@@ -105,6 +153,7 @@ class App extends Component {
     if (!lastCursor) {
       this.setState({ streams: [] });
       window.scrollTo(0, 0);
+      this.sendGAEvents();
     }
 
     while (counter < MIN_STREAMS_PER_PAGE) {
@@ -143,7 +192,7 @@ class App extends Component {
 
       this.getGames(tmpStreams);
 
-      this.setState({ streams: [...streams, ...tmpStreams]});
+      this.setState({ streams: [...streams, ...tmpStreams] });
     }
 
     this.setState({ loading: false });
@@ -195,7 +244,7 @@ class App extends Component {
     filters[e.target.name] = e.target.value;
 
     lastCursor = '';
-    this.setState({filters: filters});
+    this.setState({ filters: filters });
   }
 
   setLanguage = (selectedLanguages) => {
@@ -249,7 +298,7 @@ class App extends Component {
   handleGameFilter = (e) => {
     lastCursor = '';
     const value = e.target.value;
-    this.setState({excludeGames: value})
+    this.setState({ excludeGames: value })
   }
 
   hideFilters = () => {
@@ -262,12 +311,25 @@ class App extends Component {
     document.body.classList.add('no-scroll');
   }
 
-  login = () => document.location.href = `${TWITCH_AUTH_PATH}authorize?${qs.stringify(TWITCH_AUTH_PARAMS)}`;
+  login = () => {
+    ReactGA.outboundLink(
+      { label: 'Clicked Authentification' },
+      function () {
+        document.location.href = `${TWITCH_AUTH_PATH}authorize?${qs.stringify(TWITCH_AUTH_PARAMS)}`;
+      }
+    );
+  }
+
   logoff = () => this.setState({ logged: disconnect() });
 
   reset = () => {
+    ReactGA.event({
+      category: 'User',
+      action: 'Reset filters',
+    });
+
     lastCursor = '';
-    this.setState({...INITIAL_STATE})
+    this.setState({ ...INITIAL_STATE })
   };
 
   render() {
@@ -302,19 +364,19 @@ class App extends Component {
               <h2>Games</h2>
               <div className="filters__line">
                 <div className="filters__radios">
-                  <RadioInput 
-                    id="include" 
-                    value="false" 
-                    checked={this.state.excludeGames === "false"} 
+                  <RadioInput
+                    id="include"
+                    value="false"
+                    checked={this.state.excludeGames === "false"}
                     onChange={this.handleGameFilter}
                   >
                     Include
                   </RadioInput>
 
-                  <RadioInput 
-                    id="exclude" 
-                    value="true" 
-                    checked={this.state.excludeGames === "true"} 
+                  <RadioInput
+                    id="exclude"
+                    value="true"
+                    checked={this.state.excludeGames === "true"}
                     onChange={this.handleGameFilter}
                   >
                     Exclude
@@ -407,7 +469,7 @@ class App extends Component {
             )}
         </header>
 
-        <div className="content">
+        <main>
           {this.state.streams.length ? (
             <div>
               <div className="streams">
@@ -434,7 +496,7 @@ class App extends Component {
               <div className="loading-spinner"><div></div><div></div></div>
             </div>
           }
-        </div>
+        </main>
       </div>
     );
   }
